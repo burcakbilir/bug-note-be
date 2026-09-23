@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Express + Prisma API for Bug Note, a personal debugging memory app. User-scoped bug note CRUD, httpOnly-cookie/JWT session auth, and a demo (non-email) password reset flow.
 
-The frontend lives in the sibling repo at `/Users/burcakbilir/Desktop/bug-note` and expects this API on `http://localhost:4000` with `credentials: "include"` (CORS is locked to `FRONTEND_URL`).
+The frontend lives in the sibling repo `bug-note` and expects this API on `http://localhost:4000` with `credentials: "include"` (CORS is locked to `FRONTEND_URL`).
 
 ## Commands
 
