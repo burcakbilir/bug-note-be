@@ -1,0 +1,22 @@
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import { env } from "./config/env.js";
+import { usersRouter } from "./modules/users/users.routes.js";
+import { authRouter } from "./modules/auth/auth.routes.js";
+import { bugsRouter } from "./modules/bugs/bugs.routes.js";
+import { errorHandler, notFoundHandler } from "./middlewares/error-handler.js";
+
+export const app = express();
+
+app.use(cors({ origin: env.frontendUrl, credentials: true }));
+
+app.use(express.json());
+app.use(cookieParser());
+
+app.use("/auth", authRouter);
+app.use("/users", usersRouter);
+app.use("/bugs", bugsRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);

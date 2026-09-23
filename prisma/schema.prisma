@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  role         String    @default("Developer")
+  initials     String
+  locale       String    @default("en")
+  savedTags    String[]  @default([])
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bugNotes     BugNote[]
+
+  @@map("users")
+}
+
+model BugNote {
+  id       String   @id @default(cuid())
+  ownerId  String
+  title    String
+  summary  String   @default("")
+  status   String   @default("draft")
+  severity String   @default("medium")
+  project  String   @default("")
+  tags     String[] @default([])
+  stack    String[] @default([])
+  linkedCard Json?
+
+  problem       String @default("")
+  observations  String @default("")
+  response      String @default("")
+  possibleCause String @default("")
+  solution      String @default("")
+  revisitNote   String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, updatedAt])
+  @@map("bug_notes")
+}
