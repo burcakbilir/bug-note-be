@@ -17,6 +17,15 @@ function isStringArray(value: unknown) {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function isSafeHttpUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function isValidLinkedCard(value: unknown): value is LinkedCardInput {
   if (!value || typeof value !== "object") return false;
 
@@ -29,7 +38,8 @@ function isValidLinkedCard(value: unknown): value is LinkedCardInput {
     linkedCardProviders.includes(
       card.provider as (typeof linkedCardProviders)[number],
     ) &&
-    (card.url === undefined || typeof card.url === "string")
+    (card.url === undefined ||
+      (typeof card.url === "string" && isSafeHttpUrl(card.url)))
   );
 }
 
