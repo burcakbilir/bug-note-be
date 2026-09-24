@@ -12,7 +12,7 @@ import {
   sessionCookieName,
   sessionMaxAgeSeconds,
 } from "../../lib/session";
-import { getRequestUser } from "../../lib/auth";
+import { getAuthenticatedUser } from "../../lib/auth";
 
 function setSessionCookie(res: Response, userId: string) {
   const token = createSessionToken(userId);
@@ -132,11 +132,7 @@ export async function resetPasswordController(req: Request, res: Response) {
 }
 
 export async function meController(req: Request, res: Response) {
-  const user = await getRequestUser(req);
-
-  if (!user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+  const user = getAuthenticatedUser(req);
 
   return res.json({
     user,
@@ -144,11 +140,7 @@ export async function meController(req: Request, res: Response) {
 }
 
 export async function updateMeController(req: Request, res: Response) {
-  const user = await getRequestUser(req);
-
-  if (!user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+  const user = getAuthenticatedUser(req);
 
   const result = await updateCurrentUser(user.id, req.body);
 
@@ -160,12 +152,8 @@ export async function updateMeController(req: Request, res: Response) {
 }
 
 export async function deleteMeController(req: Request, res: Response) {
-  const user = await getRequestUser(req);
+  const user = getAuthenticatedUser(req);
   const body = req.body as { currentPassword?: string };
-
-  if (!user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
 
   if (!body.currentPassword) {
     return res.status(400).json({ message: "Current password is required" });

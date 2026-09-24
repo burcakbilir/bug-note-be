@@ -38,3 +38,10 @@ export async function getRequestUser(req: Request): Promise<AuthUser | null> {
     savedTags: user.savedTags,
   };
 }
+
+export function getAuthenticatedUser(req: Request) {
+  if (!req.user) {
+    throw new Error("Authenticated user is missing");
+  }
+  return req.user;
+}

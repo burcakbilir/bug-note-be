@@ -9,6 +9,7 @@ import {
   resetPasswordController,
   updateMeController,
 } from "./auth.controller.js";
+import { requireAuth } from "../../middlewares/require-auth.js";
 
 export const authRouter = Router();
 
@@ -16,7 +17,7 @@ authRouter.post("/register", registerController);
 authRouter.post("/login", loginController);
 authRouter.post("/forgot-password", forgotPasswordController);
 authRouter.post("/reset-password", resetPasswordController);
-authRouter.get("/me", meController);
-authRouter.patch("/me", updateMeController);
-authRouter.delete("/me", deleteMeController);
+authRouter.get("/me", requireAuth, meController);
+authRouter.patch("/me", requireAuth, updateMeController);
+authRouter.delete("/me", requireAuth, deleteMeController);
 authRouter.post("/logout", logoutController);

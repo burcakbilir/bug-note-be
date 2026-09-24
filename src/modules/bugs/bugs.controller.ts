@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { createBug, deleteBug, listBugs, updateBug } from "./bugs.service.js";
+import { getAuthenticatedUser } from "../../lib/auth.js";
 
 
 type LinkedCardInput = {
@@ -80,13 +81,6 @@ function validateBugPayload(body: Record<string, unknown>, mode: "create" | "upd
   }
 
   return null;
-}
-
-function getAuthenticatedUser(req: Request) {
-  if (!req.user) {
-    throw new Error("Authenticated user is missing");
-  }
-  return req.user;
 }
 
 export async function listBugsController(req: Request, res: Response) {

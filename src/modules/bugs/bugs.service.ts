@@ -124,7 +124,4 @@ export async function deleteBug(ownerId: string, bugId: string) {
       id: bugId,
     },
   });
-
-
-  // prisma.bugNote.deleteMany()
 }
