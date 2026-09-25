@@ -18,7 +18,7 @@ function isStringArray(value: unknown) {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
-function isSafeHttpUrl(url: string) {
+export function isSafeHttpUrl(url: string) {
   try {
     const parsed = new URL(url);
     return parsed.protocol === "http:" || parsed.protocol === "https:";
