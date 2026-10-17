@@ -58,18 +58,18 @@ function toAuthUser(user: {
   };
 }
 
-
 function createPasswordResetToken(userId: string) {
-  return jwt.sign(
-    { purpose: "password-reset", userId },
-    env.sessionSecret,
-    { expiresIn: "15m" },
-  );
+  return jwt.sign({ purpose: "password-reset", userId }, env.sessionSecret, {
+    expiresIn: "15m",
+  });
 }
 
 function verifyPasswordResetToken(token: string) {
   try {
-    const payload = jwt.verify(token, env.sessionSecret) as PasswordResetPayload;
+    const payload = jwt.verify(
+      token,
+      env.sessionSecret,
+    ) as PasswordResetPayload;
 
     if (payload.purpose !== "password-reset") {
       return null;
@@ -83,11 +83,7 @@ function verifyPasswordResetToken(token: string) {
 
 function normalizeSavedTags(tags: string[]) {
   return [
-    ...new Set(
-      tags
-        .map((tag) => tag.trim().replace(/^#/, ""))
-        .filter(Boolean),
-    ),
+    ...new Set(tags.map((tag) => tag.trim().replace(/^#/, "")).filter(Boolean)),
   ];
 }
 
@@ -242,7 +238,10 @@ export async function updateCurrentUser(
   };
 }
 
-export async function deleteCurrentUser(userId: string, currentPassword: string) {
+export async function deleteCurrentUser(
+  userId: string,
+  currentPassword: string,
+) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -275,16 +274,22 @@ export async function requestPasswordReset(email: string) {
   });
 
   if (!user) {
-    return { resetUrl: null };
+    return { ok: true };
   }
 
   const token = createPasswordResetToken(user.id);
   const resetUrl = `${env.frontendUrl}/auth/reset-password?token=${token}`;
 
-  return { resetUrl };
+  if (process.env.NODE_ENV !== "production") {
+    console.log("Reset url:", resetUrl);
+  }
+  return { ok: true };
 }
 
-export async function resetPassword(input: { token: string; password: string }) {
+export async function resetPassword(input: {
+  token: string;
+  password: string;
+}) {
   const payload = verifyPasswordResetToken(input.token);
 
   if (!payload) {
