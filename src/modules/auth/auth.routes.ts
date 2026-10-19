@@ -10,11 +10,28 @@ import {
   updateMeController,
 } from "./auth.controller.js";
 import { requireAuth } from "../../middlewares/require-auth.js";
+import rateLimit from "express-rate-limit";
 
 export const authRouter = Router();
 
+const loginEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  keyGenerator: (req)=> {
+    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : ""
+    return `login:${email}`
+  },
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message:{
+    message: "Too many failed login attempts. Please try again later"
+  }
+})
+
+
 authRouter.post("/register", registerController);
-authRouter.post("/login", loginController);
+authRouter.post("/login", loginEmailLimiter, loginController);
 authRouter.post("/forgot-password", forgotPasswordController);
 authRouter.post("/reset-password", resetPasswordController);
 authRouter.get("/me", requireAuth, meController);
