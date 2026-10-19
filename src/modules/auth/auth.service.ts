@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import { env } from "../../config/env";
-import { verifyPassword, hashPassword } from "../../lib/password";
+import { verifyPassword, hashPassword, saltRounds } from "../../lib/password";
 import { prisma } from "../../lib/prisma";
 
 type RegisterInput = {
@@ -30,10 +30,9 @@ type UpdateCurrentUserInput = {
   savedTags?: string[];
 };
 
-// Must match saltRounds in src/lib/password.ts so unknown-email logins take as
-// long as wrong-password logins.
-const passwordSaltRounds = 10;
-const dummyPasswordHash = bcrypt.hashSync("dummy-password", passwordSaltRounds);
+// Same cost as real hashes so unknown-email logins take as long as
+// wrong-password logins.
+const dummyPasswordHash = bcrypt.hashSync("dummy-password", saltRounds);
 
 function getInitials(name: string) {
   return name
