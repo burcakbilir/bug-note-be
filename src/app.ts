@@ -20,6 +20,14 @@ app.use(express.json());
 app.use(cookieParser());
 
 
+// TEMPORARY: trust proxy ayarı için ölçüm. İşimiz bitince silinecek.
+app.get("/debug/ip", (req, res) => {
+  res.json({
+    ip: req.ip,
+    xForwardedFor: req.headers["x-forwarded-for"] ?? null,
+    remoteAddress: req.socket.remoteAddress,
+  });
+});
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
