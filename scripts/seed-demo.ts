@@ -51,7 +51,7 @@ const demoNotes = [
   {
     title: "401 loop on token refresh under slow network",
     summary: "Users get logged out repeatedly when the access token expires mid-session on a slow connection.",
-    status: "in-progress",
+    status: "investigating",
     severity: "high",
     project: "auth-gateway",
     tags: ["backend", "auth"],
@@ -69,7 +69,7 @@ const demoNotes = [
   {
     title: "Linked Jira card shows the wrong status after a webhook update",
     summary: "The linked-card badge in a bug note doesn't reflect the Jira issue's current status.",
-    status: "open",
+    status: "draft",
     severity: "low",
     project: "bug-note-be",
     tags: ["integrations"],
