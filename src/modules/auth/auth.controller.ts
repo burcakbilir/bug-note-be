@@ -13,7 +13,14 @@ import {
   sessionMaxAgeSeconds,
 } from "../../lib/session";
 import { getAuthenticatedUser } from "../../lib/auth";
-import { loginSchema, registerSchema } from "./auth.schemas";
+import {
+  deleteMeSchema,
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+  updateMeSchema,
+} from "./auth.schemas";
 
 function setSessionCookie(res: Response, userId: string) {
   const token = createSessionToken(userId);
@@ -78,30 +85,31 @@ export async function loginController(req: Request, res: Response) {
 }
 
 export async function forgotPasswordController(req: Request, res: Response) {
-  const body = req.body as { email?: string };
+  const parsed = forgotPasswordSchema.safeParse(req.body);
 
-  if (!body.email) {
-    return res.status(400).json({ message: "Email is required" });
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: parsed.error.issues[0]?.message ?? "Email is required",
+    });
   }
 
-  const result = await requestPasswordReset(body.email);
+  const result = await requestPasswordReset(parsed.data.email);
 
   return res.json(result);
 }
 
 export async function resetPasswordController(req: Request, res: Response) {
-  const body = req.body as { token?: string; password?: string };
+  const parsed = resetPasswordSchema.safeParse(req.body);
 
-  if (!body.token || !body.password) {
+  if (!parsed.success) {
     return res.status(400).json({
-      message: "Reset token and password are required",
+      message:
+        parsed.error.issues[0]?.message ??
+        "Reset token and password are required",
     });
   }
 
-  const result = await resetPassword({
-    token: body.token,
-    password: body.password,
-  });
+  const result = await resetPassword(parsed.data);
 
   if ("error" in result) {
     return res.status(result.status ?? 400).json({ message: result.error });
@@ -121,7 +129,15 @@ export async function meController(req: Request, res: Response) {
 export async function updateMeController(req: Request, res: Response) {
   const user = getAuthenticatedUser(req);
 
-  const result = await updateCurrentUser(user.id, req.body);
+  const parsed = updateMeSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({ message: parsed.error.issues[0]?.message ?? "Invalid input" });
+  }
+
+  const result = await updateCurrentUser(user.id, parsed.data);
 
   if ("error" in result) {
     return res.status(result.status ?? 400).json({ message: result.error });
@@ -132,13 +148,19 @@ export async function updateMeController(req: Request, res: Response) {
 
 export async function deleteMeController(req: Request, res: Response) {
   const user = getAuthenticatedUser(req);
-  const body = req.body as { currentPassword?: string };
 
-  if (!body.currentPassword) {
-    return res.status(400).json({ message: "Current password is required" });
+  const parsed = deleteMeSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({
+        message:
+          parsed.error.issues[0]?.message ?? "Current password is required",
+      });
   }
 
-  const result = await deleteCurrentUser(user.id, body.currentPassword);
+  const result = await deleteCurrentUser(user.id, parsed.data.currentPassword);
 
   if ("error" in result) {
     return res.status(result.status ?? 400).json({ message: result.error });

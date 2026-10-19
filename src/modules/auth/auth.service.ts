@@ -29,6 +29,7 @@ type UpdateCurrentUserInput = {
   savedTags?: string[];
 };
 
+
 function getInitials(name: string) {
   return name
     .split(" ")
