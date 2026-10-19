@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { env } from "./config/env.js";
-import { usersRouter } from "./modules/users/users.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { bugsRouter } from "./modules/bugs/bugs.routes.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error-handler.js";
@@ -29,7 +28,6 @@ const authLimiter = rateLimit({
 });
 
 app.use("/auth", authLimiter, authRouter);
-app.use("/users", usersRouter);
 app.use("/bugs", bugsRouter);
 
 app.use(notFoundHandler);
