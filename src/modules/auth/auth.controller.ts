@@ -13,6 +13,7 @@ import {
   sessionMaxAgeSeconds,
 } from "../../lib/session";
 import { getAuthenticatedUser } from "../../lib/auth";
+import { loginSchema, registerSchema } from "./auth.schemas";
 
 function setSessionCookie(res: Response, userId: string) {
   const token = createSessionToken(userId);
@@ -34,29 +35,14 @@ function clearSessionCookie(res: Response) {
 }
 
 export async function registerController(req: Request, res: Response) {
-  const body = req.body as {
-    name?: string;
-    email?: string;
-    password?: string;
-  };
-
-  if (!body.name || !body.email || !body.password) {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) {
     return res
       .status(400)
-      .json({ message: "Name, email and password are required" });
+      .json({ message: parsed.error.issues[0]?.message ?? "Invalid input" });
   }
 
-  if (body.password.length < 8) {
-    return res
-      .status(400)
-      .json({ message: "Password must be at least 8 characters" });
-  }
-
-  const result = await registerUser({
-    name: body.name,
-    email: body.email,
-    password: body.password,
-  });
+  const result = await registerUser(parsed.data);
 
   if ("error" in result) {
     return res.status(400).json({ message: result.error });
@@ -68,21 +54,15 @@ export async function registerController(req: Request, res: Response) {
 }
 
 export async function loginController(req: Request, res: Response) {
-  const body = req.body as {
-    email?: string;
-    password?: string;
-  };
+  const parsed = loginSchema.safeParse(req.body);
 
-  if (!body.email || !body.password) {
-    return res.status(400).json({
-      message: "Email and password are required",
-    });
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({ message: parsed.error.issues[0]?.message ?? "Invalid input" });
   }
 
-  const result = await loginUser({
-    email: body.email,
-    password: body.password,
-  });
+  const result = await loginUser(parsed.data);
 
   if ("error" in result) {
     return res.status(401).json({
@@ -96,7 +76,6 @@ export async function loginController(req: Request, res: Response) {
     user: result.user,
   });
 }
-
 
 export async function forgotPasswordController(req: Request, res: Response) {
   const body = req.body as { email?: string };
