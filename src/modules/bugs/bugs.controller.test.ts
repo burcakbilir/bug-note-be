@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSafeHttpUrl } from "./bugs.controller";
+import { isSafeHttpUrl } from "./bugs.schemas";
 
 describe("isSafeHttpUrl", () => {
     it("accepts a real http(s) link", ()=> {

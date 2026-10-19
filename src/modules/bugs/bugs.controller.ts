@@ -2,86 +2,7 @@ import type { Request, Response } from "express";
 import { createBug, deleteBug, listBugs, updateBug } from "./bugs.service.js";
 import { getAuthenticatedUser } from "../../lib/auth.js";
 
-
-type LinkedCardInput = {
-  id: string;
-  provider: string;
-  title: string;
-  url?: string;
-};
-
-const bugStatuses = ["draft", "investigating", "resolved"] as const;
-const bugSeverities = ["low", "medium", "high", "critical"] as const;
-const linkedCardProviders = ["trello", "github", "jira", "linear"] as const;
-
-function isStringArray(value: unknown) {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
-export function isSafeHttpUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-function isValidLinkedCard(value: unknown): value is LinkedCardInput {
-  if (!value || typeof value !== "object") return false;
-
-  const card = value as Record<string, unknown>;
-
-  return (
-    typeof card.id === "string" &&
-    typeof card.title === "string" &&
-    typeof card.provider === "string" &&
-    linkedCardProviders.includes(
-      card.provider as (typeof linkedCardProviders)[number],
-    ) &&
-    (card.url === undefined ||
-      (typeof card.url === "string" && isSafeHttpUrl(card.url)))
-  );
-}
-
-function validateBugPayload(body: Record<string, unknown>, mode: "create" | "update") {
-  if (mode === "create" && typeof body.title !== "string") {
-    return "Bug title is required";
-  }
-
-  if (body.title !== undefined && (typeof body.title !== "string" || !body.title.trim())) {
-    return "Bug title is required";
-  }
-
-  if (body.status !== undefined && !bugStatuses.includes(body.status as never)) {
-    return "Invalid bug status";
-  }
-
-  if (
-    body.severity !== undefined &&
-    !bugSeverities.includes(body.severity as never)
-  ) {
-    return "Invalid bug severity";
-  }
-
-  if (body.tags !== undefined && !isStringArray(body.tags)) {
-    return "Tags must be a string array";
-  }
-
-  if (body.stack !== undefined && !isStringArray(body.stack)) {
-    return "Stack must be a string array";
-  }
-
-  if (
-    body.linkedCard !== undefined &&
-    body.linkedCard !== null &&
-    !isValidLinkedCard(body.linkedCard)
-  ) {
-    return "Invalid linked card";
-  }
-
-  return null;
-}
+import { createBugSchema, updateBugSchema } from "./bugs.schemas.js";
 
 export async function listBugsController(req: Request, res: Response) {
   const user = getAuthenticatedUser(req);
@@ -96,45 +17,15 @@ export async function listBugsController(req: Request, res: Response) {
 export async function createBugController(req: Request, res: Response) {
   const user = getAuthenticatedUser(req);
 
-  const body = req.body as {
-    title?: string;
-    summary?: string;
-    status?: string;
-    severity?: string;
-    project?: string;
-    tags?: string[];
-    stack?: string[];
-    linkedCard?: LinkedCardInput | null;
-    problem?: string;
-    observations?: string;
-    response?: string;
-    possibleCause?: string;
-    solution?: string;
-    revisitNote?: string;
-  };
+  const parsed = createBugSchema.safeParse(req.body);
 
-  const validationError = validateBugPayload(body, "create");
-
-  if (validationError) {
-    return res.status(400).json({ message: validationError });
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({ message: parsed.error.issues[0]?.message ?? "Invalid input" });
   }
 
-  const bug = await createBug(user.id, {
-    title: body.title as string,
-    summary: body.summary,
-    status: body.status,
-    severity: body.severity,
-    project: body.project,
-    tags: body.tags,
-    stack: body.stack,
-    linkedCard: body.linkedCard,
-    problem: body.problem,
-    observations: body.observations,
-    response: body.response,
-    possibleCause: body.possibleCause,
-    solution: body.solution,
-    revisitNote: body.revisitNote,
-  });
+  const bug = await createBug(user.id, parsed.data);
 
   return res.status(201).json({ bug });
 }
@@ -152,13 +43,15 @@ export async function updateBugController(
     });
   }
 
-  const validationError = validateBugPayload(req.body, "update");
+  const parsed = updateBugSchema.safeParse(req.body);
 
-  if (validationError) {
-    return res.status(400).json({ message: validationError });
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({ message: parsed.error.issues[0]?.message ?? "Invalid input" });
   }
 
-  const bug = await updateBug(user.id, bugId, req.body);
+  const bug = await updateBug(user.id, bugId, parsed.data);
 
   if (!bug) {
     return res.status(404).json({
