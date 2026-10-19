@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import { env } from "../../config/env";
@@ -29,6 +30,10 @@ type UpdateCurrentUserInput = {
   savedTags?: string[];
 };
 
+// Must match saltRounds in src/lib/password.ts so unknown-email logins take as
+// long as wrong-password logins.
+const passwordSaltRounds = 10;
+const dummyPasswordHash = bcrypt.hashSync("dummy-password", passwordSaltRounds);
 
 function getInitials(name: string) {
   return name
@@ -125,18 +130,12 @@ export async function loginUser(input: LoginInput) {
     where: { email },
   });
 
-  if (!user) {
-    return {
-      error: "Invalid email or password",
-    };
-  }
-
   const isPasswordValid = await verifyPassword(
     input.password,
-    user.passwordHash,
+    user?.passwordHash ?? dummyPasswordHash,
   );
 
-  if (!isPasswordValid) {
+  if (!user || !isPasswordValid) {
     return {
       error: "Invalid email or password",
     };
