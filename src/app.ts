@@ -10,7 +10,9 @@ import { errorHandler, notFoundHandler } from "./middlewares/error-handler.js";
 
 export const app = express();
 
-app.set("trust proxy", 4)
+// Measured in production with a temporary IP debug endpoint: requests pass
+// through 4 proxies before reaching the app. Re-measure if hosting changes.
+app.set("trust proxy", 4);
 
 app.use(helmet());
 app.use(cors({ origin: env.frontendUrl, credentials: true }));
